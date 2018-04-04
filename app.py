@@ -68,6 +68,67 @@ def register():
     return render_template('register.html', form=form)
 
 
+#User login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        #Get Form fields
+        reg = request.form['reg']
+        password_candidate = request.form['password']
+
+        cur = mysql.connection.cursor()
+
+        result = cur.execute("SELECT * FROM users WHERE reg = %s", [reg])
+
+        if result > 0:
+            data = cur.fetchone()
+            password = data['password']
+
+            #compare Passwords
+            if sha256_crypt.verify(password_candidate,password):
+                session['logged_in'] = True
+                session['reg'] = reg
+
+                flash('You are now logged in', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                error = 'Invalid login'
+                return render_template('login.html', error=error)
+            #Close connection
+            cur.close()
+        else:
+            error = 'Username not found'
+            return render_template('login.html', error=error)
+
+    return render_template('login.html')
+
+#Check if user logged in
+def is_logged_in(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session:
+            return f(*args, **kwargs)
+        else:
+            flash('Unauthorised, Please Login ', 'danger')
+            return redirect(url_for('login'))
+    return wrap
+
+#Logout
+@app.route('/logout')
+@is_logged_in
+def logout():
+    session.clear()
+    flash('You are now logged out', 'success')
+    return redirect(url_for('login'))
+
+#Dashboard
+@app.route('/dashboard')
+@is_logged_in
+def dashboard():
+    return render_template('dashboard.html')
+
+
+
 if __name__=='__main__':
     app.secret_key='prashant'
     app.debug = True
