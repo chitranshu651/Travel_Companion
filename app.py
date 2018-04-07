@@ -1,8 +1,11 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators
+from wtforms import Form, StringField, TextAreaField, PasswordField, validators, RadioField,IntegerField
 from passlib.hash import sha256_crypt
 from functools import wraps
+from wtforms_components import TimeField, SelectField, DateRange,Email
+from datetime import datetime, date
+from wtforms.fields.html5 import DateField
 
 app = Flask(__name__)
 
@@ -25,11 +28,12 @@ def index():
 # Register Form class
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
-    reg = StringField('Registration No.', [validators.Length(max=8)])
+    reg = IntegerField('Registration No.', [validators.NumberRange(min=20110000,max=20180000,message='Invalid Registration No.')])
     hostel = StringField('Hostel', [validators.Length(min=4, max=10)])
     room = StringField('Room No', [validators.Length(min=1, max=10)])
-    email = StringField('Email', [validators.Length(min=6, max=50)])
-    mobile = StringField('Mobile', [validators.Length(max=10)])
+    email = StringField('Email', [validators.Email()])
+    mobile = IntegerField('Mobile', [validators.NumberRange(max=9999999999)])
+    fbusername = StringField('Facebook Username', [validators.length(min=2,max=50)])
     password = PasswordField('Password', [
         validators.DataRequired(),
         validators.EqualTo('confirm', message='Passwords do not match')
@@ -48,13 +52,14 @@ def register():
         room = form.room.data
         email = form.email.data
         mobile = form.mobile.data
+        fbusername = form.fbusername.data
         password = sha256_crypt.encrypt(str(form.password.data))
 
         # Create cursor
         cur = mysql.connection.cursor()
 
         #Execute query
-        cur.execute("INSERT INTO users(reg, name, hostel, room,email ,mobile, password) VALUES(%s,%s,%s,%s,%s,%s,%s)",( reg, name, hostel, room, email , mobile, password))
+        cur.execute("INSERT INTO users(reg, name, hostel, room,email ,mobile, password, fbusername) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",( reg, name, hostel, room, email , mobile, password,fbusername))
 
         #Commit to DB
         mysql.connection.commit()
@@ -83,16 +88,18 @@ def login():
         if result > 0:
             data = cur.fetchone()
             password = data['password']
+            name = data['name']
 
             #compare Passwords
             if sha256_crypt.verify(password_candidate,password):
                 session['logged_in'] = True
                 session['reg'] = reg
+                session['name'] = name
 
                 flash('You are now logged in', 'success')
                 return redirect(url_for('dashboard'))
             else:
-                error = 'Invalid login'
+                error = 'Invalid Password'
                 return render_template('login.html', error=error)
             #Close connection
             cur.close()
@@ -121,11 +128,78 @@ def logout():
     flash('You are now logged out', 'success')
     return redirect(url_for('login'))
 
+#Search class
+class SearchForm(Form):
+    date = DateField(u'Enter Date',format='%Y-%m-%d')
+    destination = SelectField(u'Select destination to search for', choices=[('Allahabad Station', 'Allahabad Station'), ('PVR Vinayak', 'PVR Vinayak'), ('Civil Lines', 'Civil Lines'), ('Prayag Station', 'Prayag Station')])
+    trainno = IntegerField(u'Enter Train no', [validators.NumberRange(max=99999,message='Not a Valid Train No.'), validators.optional()], default=None)
+
+
 #Dashboard
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET','POST'])
 @is_logged_in
 def dashboard():
-    return render_template('dashboard.html')
+    form = SearchForm(request.form)
+    if request.method == 'POST' and form.validate():
+        destination = form.destination.data
+        date = form.date.data
+        trainno = form.trainno.data
+        #MYSQL
+        cur = mysql.connection.cursor()
+        if trainno == None:
+            result = cur.execute("SELECT * FROM entries WHERE destination=%s and date=%s", [destination,date])
+            if result > 0:
+                entries = cur.fetchall()
+                return render_template('search_results.html', entries=entries,trainno=trainno)
+            else:
+                flash("No Entries found satisfying your query", 'success')
+        else:
+            entries = cur.fetchall()
+            result = cur.execute("SELECT * FROM entries WHERE destination=%s and date=%s and trainno=%s", [destination,date,trainno])
+            if result > 0:
+                entries = cur.fetchall()
+                return render_template('search_results.html', entries=entries,trainno=trainno)
+            else:
+                flash("No Entries found satisfying your query", 'success')
+
+    return render_template('dashboard.html', form=form)
+
+#Add_entry form class
+class add_entryForm(Form):
+    destination = SelectField(u'Select destination', choices=[('Allahabad Station', 'Allahabad Station'), ('PVR Vinayak', 'PVR Vinayak'), ('Civil Lines', 'Civil Lines'), ('Prayag Station', 'Prayag Station')])
+    date = DateField('Date',  format='%Y-%m-%d')
+    time = TimeField('Time' )
+    trainno = IntegerField('Enter Train No if travelling by Train',[validators.optional()])
+
+
+
+
+#add Entry
+@app.route('/add_entry', methods=['GET', 'POST'])
+@is_logged_in
+def add_entry():
+    form = add_entryForm(request.form)
+    if request.method == 'POST' and form.validate():
+        destination = form.destination.data
+        date = form.date.data
+        time = form.time.data
+        trainno = form.trainno.data
+        #MySQL
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM users WHERE reg=%s", [session.get('reg')])
+        user = cur.fetchone()
+        cur.execute("INSERT INTO entries(name,fbusername,hostel,room,destination, date ,time ,trainno) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",(user['name'],user['fbusername'],user['hostel'],user['room'],destination,date,time,trainno))
+
+        mysql.connection.commit()
+        cur.close()
+
+        flash('Your entry is added', 'success')
+
+        return redirect(url_for('dashboard'))
+    return render_template('add_entry.html', form=form)
+
+
+
 
 
 

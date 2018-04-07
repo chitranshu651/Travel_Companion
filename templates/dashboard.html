@@ -1,5 +1,20 @@
 {% extends 'layout.html' %}
 
 {% block body %}
- <h1>Dashboard <small> Welcome {{session.username}}</small></h1>
+ <h1>Dashboard <small> Welcome {{session.name}}</small></h1>
+ {% from "includes/_formhelpers.html" import render_field %}
+ <a href="{{url_for('add_entry')}}"><h2>Add new Entry</h2></a>
+ <h1>Search For Entry</h1>
+ <form method="POST" action="">
+   <div class="form-group">
+     {{render_field(form.date,class_="form-control")}}
+   </div>
+   <div class="form-group">
+     {{render_field(form.destination,class_="form-control")}}
+   </div>
+   <div class="form-group">
+     {{render_field(form.trainno,class_="form-control")}}
+   </div>
+   <p><input type="submit" class="btn btn-primary" value="submit"></p>
+ </form>
  {% endblock %}

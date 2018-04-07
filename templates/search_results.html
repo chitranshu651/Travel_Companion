@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% block body %}
+{% from "includes/_formhelpers.html" import render_field %}
+<table class="table table-striped">
+  <tr>
+    <th>Name</th>
+    <th>Place</th>
+    <th>Date</th>
+    <th>Time</th>
+    <th>Train No</th>
+    <th>Contact</th>
+  </tr>
+  {% for entry in entries %}
+    <tr>
+      <td>{{entry.name}}</td>
+      <td>{{entry.destination}}</td>
+      <td>{{entry.date}}</td>
+      <td>{{entry.time}}</td>
+ <td>{{entry.trainno}}</td>
+      <td><a class="btn btn-primary" href="http://www.facebook.com/{{entry.fbusername}}">Facebook</a></td>
+    </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
