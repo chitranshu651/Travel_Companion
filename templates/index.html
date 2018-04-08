@@ -15,8 +15,7 @@
   <body >
     <style>
     body {
-   background-image: url("{{ url_for('static', filename='12.jpg') }}");
-   background-color: #cccccc;
+   background-color: lightblue;
    background-size:cover;
 }
     </style>
@@ -40,12 +39,12 @@
                     <a class="nav-link" href="/">Home
                     </a>
                 </li>
-                <li class="nav-item">
+                <!--<li class="nav-item">
                     <a class="nav-link" href="/about">About</a>
-                </li>
-                <li class="nav-item">
+                </li>-->
+  {% if session.logged_in %}              <li class="nav-item">
                     <a class="nav-link" href="/add_entry">Add new entry</a>
-                </li>
+                </li>{% endif %}
 
                 <!-- Dropdown -->
 
@@ -70,7 +69,6 @@
     </nav>
     <div class="container">
       {% include 'includes/_messages.html' %}
-      {% block body %}{% endblock %}
     </div>
     <br><br><br><br>
 

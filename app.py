@@ -135,7 +135,15 @@ def logout():
 @app.route('/dashboard')
 @is_logged_in
 def dashboard():
-    return render_template('dashboard.html')
+        #MYSQL
+        cur = mysql.connection.cursor()
+        result = cur.execute("SELECT * FROM entries WHERE reg=%s", [session.get('reg')])
+        if result > 0:
+            entries = cur.fetchall()
+            return render_template('dashboard.html', entries=entries)
+        else:
+            flash("No Entries found", 'danger')
+            return render_template('dashboard.html')
 
 #Add_entry form class
 class add_entryForm(Form):
@@ -161,7 +169,7 @@ def add_entry():
         cur = mysql.connection.cursor()
         cur.execute("SELECT * FROM users WHERE reg=%s", [session.get('reg')])
         user = cur.fetchone()
-        cur.execute("INSERT INTO entries(name,fbusername,hostel,room,destination, date ,time ,trainno) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",(user['name'],user['fbusername'],user['hostel'],user['room'],destination,date,time,trainno))
+        cur.execute("INSERT INTO entries(name,fbusername,hostel,room,destination, date ,time ,trainno,reg) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",(user['name'],user['fbusername'],user['hostel'],user['room'],destination,date,time,trainno,user['reg']))
 
         mysql.connection.commit()
         cur.close()
@@ -194,14 +202,16 @@ def search():
                 entries = cur.fetchall()
                 return render_template('search_results.html', entries=entries,trainno=trainno)
             else:
-                flash("No Entries found satisfying your query", 'success')
+                flash("No Entries found satisfying your query", 'danger')
+                return redirect(url_for('search'))
         else:
             result = cur.execute("SELECT * FROM entries WHERE destination=%s and date=%s and trainno=%s", [destination,date,trainno])
             if result > 0:
                 entries = cur.fetchall()
                 return render_template('search_results.html', entries=entries,trainno=trainno)
             else:
-                flash("No Entries found satisfying your query", 'success')
+                flash("No Entries found satisfying your query", 'danger')
+                return redirect(url_for('search'))
     else:
         return render_template('search.html', form=form)
 
