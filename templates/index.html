@@ -1,7 +1,80 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Find Companion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mdb.min.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='s.min.css') }}" type="text/css">
 
- {% block body %}
- <div class="jumbotron text-center">
+    <link rel="shortcut icon" href="favicon.ico">
+  </head>
+
+
+  <body >
+    <style>
+    body {
+   background-image: url("{{ url_for('static', filename='12.jpg') }}");
+   background-color: #cccccc;
+   background-size:cover;
+}
+    </style>
+    <nav class="navbar navbar-expand-lg navbar-dark primary-color" style="z-index:7">
+
+        <!-- Navbar brand -->
+        <a class="navbar-brand" href="#">MNNIT Travel Companion</a>
+
+        <!-- Collapse button -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#basicExampleNav" aria-controls="basicExampleNav"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Collapsible content -->
+        <div class="collapse navbar-collapse" id="basicExampleNav">
+
+            <!-- Links -->
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/">Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/add_entry">Add new entry</a>
+                </li>
+
+                <!-- Dropdown -->
+
+
+            </ul>
+            <!-- Links -->
+            <ul class="nav navbar-nav navbar-right">
+              {% if session.logged_in %}
+                <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+              {% else %}
+                <li class="nav-item" ><a class="nav-link" href="/register">Register</a></li>
+                <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+              {% endif %}
+
+            </ul>
+
+
+        </div>
+        <!-- Collapsible content -->
+
+    </nav>
+    <div class="container">
+      {% include 'includes/_messages.html' %}
+      {% block body %}{% endblock %}
+    </div>
+    <br><br><br><br>
+
+ <div class="jumbotron text-center" style="margin-left:15%;margin-right:15%;">
  <h1>Welcome To Find Travel Companion</h1>
  <p class="lead">You can use this website to find travel companions when you are going to home by train
   or going to watch movie.</p>
@@ -10,4 +83,10 @@
    <a href="/login" class="btn btn-success btn-lg">Login</a>
  {% endif %}
 </div>
- {% endblock %}
+<script src="{{ url_for('static', filename='bootstrap.min.js')}}"></script>
+<script src="{{ url_for('static', filename='jquery-3.2.1.min.js')}}"></script>
+<script src="{{ url_for('static', filename='mdb.min.js')}}"></script>
+<script src="{{ url_for('static', filename='popper.min.js')}}
+
+</body>
+</html>

@@ -128,41 +128,14 @@ def logout():
     flash('You are now logged out', 'success')
     return redirect(url_for('login'))
 
-#Search class
-class SearchForm(Form):
-    date = DateField(u'Enter Date',format='%Y-%m-%d')
-    destination = SelectField(u'Select destination to search for', choices=[('Allahabad Station', 'Allahabad Station'), ('PVR Vinayak', 'PVR Vinayak'), ('Civil Lines', 'Civil Lines'), ('Prayag Station', 'Prayag Station')])
-    trainno = IntegerField(u'Enter Train no', [validators.NumberRange(max=99999,message='Not a Valid Train No.'), validators.optional()], default=None)
+
 
 
 #Dashboard
-@app.route('/dashboard', methods=['GET','POST'])
+@app.route('/dashboard')
 @is_logged_in
 def dashboard():
-    form = SearchForm(request.form)
-    if request.method == 'POST' and form.validate():
-        destination = form.destination.data
-        date = form.date.data
-        trainno = form.trainno.data
-        #MYSQL
-        cur = mysql.connection.cursor()
-        if trainno == None:
-            result = cur.execute("SELECT * FROM entries WHERE destination=%s and date=%s", [destination,date])
-            if result > 0:
-                entries = cur.fetchall()
-                return render_template('search_results.html', entries=entries,trainno=trainno)
-            else:
-                flash("No Entries found satisfying your query", 'success')
-        else:
-            entries = cur.fetchall()
-            result = cur.execute("SELECT * FROM entries WHERE destination=%s and date=%s and trainno=%s", [destination,date,trainno])
-            if result > 0:
-                entries = cur.fetchall()
-                return render_template('search_results.html', entries=entries,trainno=trainno)
-            else:
-                flash("No Entries found satisfying your query", 'success')
-
-    return render_template('dashboard.html', form=form)
+    return render_template('dashboard.html')
 
 #Add_entry form class
 class add_entryForm(Form):
@@ -197,6 +170,40 @@ def add_entry():
 
         return redirect(url_for('dashboard'))
     return render_template('add_entry.html', form=form)
+
+
+#Search class
+class SearchForm(Form):
+    date = DateField(u'Enter Date',format='%Y-%m-%d')
+    destination = SelectField(u'Select destination to search for', choices=[('Allahabad Station', 'Allahabad Station'), ('PVR Vinayak', 'PVR Vinayak'), ('Civil Lines', 'Civil Lines'), ('Prayag Station', 'Prayag Station')])
+    trainno = IntegerField(u'Enter Train no', [validators.NumberRange(max=99999,message='Not a Valid Train No.'), validators.optional()], default=None)
+
+@app.route('/search', methods=['GET', 'POST'])
+@is_logged_in
+def search():
+    form = SearchForm(request.form)
+    if request.method == 'POST' and form.validate():
+        destination = form.destination.data
+        date = form.date.data
+        trainno = form.trainno.data
+        #MYSQL
+        cur = mysql.connection.cursor()
+        if trainno == None:
+            result = cur.execute("SELECT * FROM entries WHERE destination=%s and date=%s", [destination,date])
+            if result > 0:
+                entries = cur.fetchall()
+                return render_template('search_results.html', entries=entries,trainno=trainno)
+            else:
+                flash("No Entries found satisfying your query", 'success')
+        else:
+            result = cur.execute("SELECT * FROM entries WHERE destination=%s and date=%s and trainno=%s", [destination,date,trainno])
+            if result > 0:
+                entries = cur.fetchall()
+                return render_template('search_results.html', entries=entries,trainno=trainno)
+            else:
+                flash("No Entries found satisfying your query", 'success')
+    else:
+        return render_template('search.html', form=form)
 
 
 

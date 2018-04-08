@@ -3,19 +3,21 @@
   <head>
     <meta charset="utf-8">
     <title>Find Companion</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mdb.min.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='s.min.css') }}" type="text/css">
+
     <link rel="shortcut icon" href="favicon.ico">
   </head>
-  <body>
+  <body >
     {% include 'includes/_navbar.html' %}
     <div class="container">
       {% include 'includes/_messages.html' %}
       {% block body %}{% endblock %}
     </div>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="//cdn.ckeditor.com/4.6.2/basic/ckeditor.js"></script>
-    <script type="text/javascript">
-      CKEDITOR.replace('editor')
-    </script>
-  </body>
+    <script src="{{ url_for('static', filename='bootstrap.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='jquery-3.2.1.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='mdb.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='popper.min.js')}}
 </html>
